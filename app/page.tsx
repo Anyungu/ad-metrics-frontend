@@ -3,8 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchAdMetrics } from "@/hooks/useFetchAdMetrics";
 import useSharedSocket from "@/hooks/useSharedSocket";
-import { Activity, DollarSign, Users, View } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Activity, View } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -18,28 +17,8 @@ import {
   YAxis,
 } from "recharts";
 
-const generateData = () => ({
-  views: Math.floor(Math.random() * 1000) + 500,
-  clicks: Math.floor(Math.random() * 200) + 100,
-  revenue: Math.floor(Math.random() * 5000) + 1000,
-  ctr: (Math.random() * 5 + 2).toFixed(2),
-});
-
-const generatePieData = () => [
-  { name: "Desktop", value: Math.floor(Math.random() * 60) + 40 },
-  { name: "Mobile", value: Math.floor(Math.random() * 40) + 20 },
-  { name: "Tablet", value: Math.floor(Math.random() * 20) + 10 },
-];
-
-const COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-];
 
 export default function Home() {
-  const [deviceData, setDeviceData] = useState(generatePieData());
-
   const {
     data: initialData,
     isLoading,
@@ -54,13 +33,7 @@ export default function Home() {
     initialTotalImpressions
   );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDeviceData(generatePieData());
-    }, 3000);
 
-    return () => clearInterval(interval);
-  }, []);
 
   if (isLoading) {
     return <div>Loading initial data...</div>;
@@ -86,7 +59,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {totalImpressions[0].impressions}
+                {totalImpressions[0]?.impressions || 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 +20.1% from last hour
@@ -148,7 +121,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-3">
+          {/* <Card className="col-span-3">
             <CardHeader>
               <CardTitle>Device Distribution</CardTitle>
             </CardHeader>
@@ -174,7 +147,7 @@ export default function Home() {
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card className="col-span-7">
             <CardHeader>

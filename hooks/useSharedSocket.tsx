@@ -43,10 +43,9 @@ const useSharedSocket = (
       setMessages(JSON.parse(message));
     });
 
-
     socket.on("total_impressions", (message: any) => {
       console.log("Received alert totla:", message);
-      setMessages(JSON.parse(message));
+      setTotalImpressions([JSON.parse(message)]);
     });
 
     return () => {
