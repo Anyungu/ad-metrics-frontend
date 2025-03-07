@@ -1,6 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useFetchAdMetrics } from "@/hooks/useFetchAdMetrics";
+import useSharedSocket from "@/hooks/useSharedSocket";
 import { Activity, DollarSign, Users, View } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -16,21 +18,12 @@ import {
   YAxis,
 } from "recharts";
 
-
 const generateData = () => ({
   views: Math.floor(Math.random() * 1000) + 500,
   clicks: Math.floor(Math.random() * 200) + 100,
   revenue: Math.floor(Math.random() * 5000) + 1000,
   ctr: (Math.random() * 5 + 2).toFixed(2),
 });
-
-const generateTimeData = () => {
-  return Array.from({ length: 24 }, (_, i) => ({
-    hour: `${i}:00`,
-    views: Math.floor(Math.random() * 1000) + 100,
-    revenue: Math.floor(Math.random() * 1000) + 100,
-  }));
-};
 
 const generatePieData = () => [
   { name: "Desktop", value: Math.floor(Math.random() * 60) + 40 },
@@ -45,19 +38,37 @@ const COLORS = [
 ];
 
 export default function Home() {
-  const [metrics, setMetrics] = useState(generateData());
-  const [timeData, setTimeData] = useState(generateTimeData());
   const [deviceData, setDeviceData] = useState(generatePieData());
+
+  const {
+    data: initialData,
+    isLoading,
+    isError,
+  } = useFetchAdMetrics(`sum(ad_impressions) by (date)`);
+
+  const { data: initialTotalImpressions } =
+    useFetchAdMetrics(`sum(ad_impressions)`);
+
+  const [messages, totalImpressions] = useSharedSocket(
+    initialData,
+    initialTotalImpressions
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMetrics(generateData());
-      setTimeData(generateTimeData());
       setDeviceData(generatePieData());
     }, 3000);
 
     return () => clearInterval(interval);
   }, []);
+
+  if (isLoading) {
+    return <div>Loading initial data...</div>;
+  }
+
+  if (isError) {
+    return <div>Failed to load initial data.</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -75,7 +86,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {metrics.views.toLocaleString()}
+                {totalImpressions[0].impressions}
               </div>
               <p className="text-xs text-muted-foreground">
                 +20.1% from last hour
@@ -84,41 +95,15 @@ export default function Home() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clicks</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Recording Couts
+              </CardTitle>
               <Activity className="h-4 w-4 text-teal-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {metrics.clicks.toLocaleString()}
-              </div>
+              <div className="text-2xl font-bold">{messages.length}</div>
               <p className="text-xs text-muted-foreground">
                 +12.5% from last hour
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-teal-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ${metrics.revenue.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                +8.1% from last hour
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">CTR</CardTitle>
-              <Users className="h-4 w-4 text-teal-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metrics.ctr}%</div>
-              <p className="text-xs text-muted-foreground">
-                +4.3% from last hour
               </p>
             </CardContent>
           </Card>
@@ -128,13 +113,13 @@ export default function Home() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <Card className="col-span-4">
             <CardHeader>
-              <CardTitle>Hourly Performance</CardTitle>
+              <CardTitle>Ads Trend</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={timeData}>
+                <LineChart data={messages}>
                   <XAxis
-                    dataKey="hour"
+                    dataKey="date"
                     stroke="#888888"
                     fontSize={12}
                     tickLine={false}
@@ -148,13 +133,13 @@ export default function Home() {
                   />
                   <Line
                     type="monotone"
-                    dataKey="views"
-                    stroke="hsl(var(--chart-1))"
+                    dataKey="impressions"
+                    stroke="green"
                     strokeWidth={2}
                   />
                   <Line
                     type="monotone"
-                    dataKey="revenue"
+                    dataKey="impressions"
                     stroke="red"
                     strokeWidth={2}
                   />
@@ -193,13 +178,13 @@ export default function Home() {
 
           <Card className="col-span-7">
             <CardHeader>
-              <CardTitle>Weekly Revenue Breakdown</CardTitle>
+              <CardTitle>Ads by Date</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={timeData}>
+                <BarChart data={messages}>
                   <XAxis
-                    dataKey="hour"
+                    dataKey="date"
                     stroke="#888888"
                     fontSize={12}
                     tickLine={false}
@@ -212,7 +197,7 @@ export default function Home() {
                     axisLine={false}
                   />
                   <Bar
-                    dataKey="revenue"
+                    dataKey="impressions"
                     fill="hsl(var(--chart-1))"
                     radius={[4, 4, 0, 0]}
                   />

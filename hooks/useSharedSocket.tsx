@@ -1,9 +1,27 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-const internalBrokerUrl = "127.0.0.1:4000";
+const internalBrokerUrl = "127.0.0.1:8082";
 
-const useSharedSocket = () => {
+type MessageType = {
+  date: string;
+  impressions: number;
+};
+
+const useSharedSocket = (
+  initialData: MessageType[] = [],
+  intialTotal: MessageType[] = []
+) => {
+  const [messages, setMessages] = useState<MessageType[]>(initialData || []);
+  const [totalImpressions, setTotalImpressions] = useState<MessageType[]>(
+    intialTotal || []
+  );
+
+  useEffect(() => {
+    setMessages(initialData || []);
+    setTotalImpressions(intialTotal || []);
+  }, [initialData, intialTotal]);
+
   useEffect(() => {
     console.log("Initializing Socket.IO client...");
     const socket: Socket = io(internalBrokerUrl);
@@ -20,6 +38,17 @@ const useSharedSocket = () => {
       console.log("Socket.IO connection closed");
     });
 
+    socket.on("impressions", (message: any) => {
+      console.log("Received alert:", message);
+      setMessages(JSON.parse(message));
+    });
+
+
+    socket.on("total_impressions", (message: any) => {
+      console.log("Received alert totla:", message);
+      setMessages(JSON.parse(message));
+    });
+
     return () => {
       if (socket?.connected) {
         socket.disconnect();
@@ -27,6 +56,8 @@ const useSharedSocket = () => {
       }
     };
   }, []);
+
+  return [messages, totalImpressions];
 };
 
 export default useSharedSocket;
