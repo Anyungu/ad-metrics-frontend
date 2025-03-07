@@ -3,10 +3,6 @@ import { io, Socket } from "socket.io-client";
 
 const internalBrokerUrl = "127.0.0.1:8082";
 
-type MessageType = {
-  date: string;
-  impressions: number;
-};
 
 const useSharedSocket = (
   initialData: MessageType[] = [],
@@ -38,12 +34,12 @@ const useSharedSocket = (
       console.log("Socket.IO connection closed");
     });
 
-    socket.on("impressions", (message: any) => {
+    socket.on("impressions", (message: string) => {
       console.log("Received alert:", message);
       setMessages(JSON.parse(message));
     });
 
-    socket.on("total_impressions", (message: any) => {
+    socket.on("total_impressions", (message: string) => {
       console.log("Received alert totla:", message);
       setTotalImpressions([JSON.parse(message)]);
     });

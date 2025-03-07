@@ -7,16 +7,12 @@ import { Activity, View } from "lucide-react";
 import {
   Bar,
   BarChart,
-  Cell,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
 } from "recharts";
-
 
 export default function Home() {
   const {
@@ -32,8 +28,6 @@ export default function Home() {
     initialData,
     initialTotalImpressions
   );
-
-
 
   if (isLoading) {
     return <div>Loading initial data...</div>;
@@ -120,34 +114,6 @@ export default function Home() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-
-          {/* <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>Device Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={deviceData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {deviceData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card> */}
 
           <Card className="col-span-7">
             <CardHeader>
