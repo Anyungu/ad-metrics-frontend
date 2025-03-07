@@ -84,7 +84,7 @@ export default function Home() {
 
         {/* Charts */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-4">
+          <Card className="col-span-7">
             <CardHeader>
               <CardTitle>Ads Trend</CardTitle>
             </CardHeader>
